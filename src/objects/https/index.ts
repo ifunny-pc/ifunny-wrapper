@@ -40,8 +40,9 @@ export class HttpsHandler {
                 password: this.password,
                 region: this.region
             })})
-            console.log(validateLogin)
-            global.emitter.emit("client-logged-in")
+            if (validateLogin.bearer) {
+                global.emitter.emit("client-logged-in", validateLogin.bearer)
+            } else throw new Error(validateLogin.error_description)
         } else throw new Error("Please provide either a bearer, or a username and password, in your client object")
     }
 } 

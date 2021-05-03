@@ -1,5 +1,6 @@
 import { WebsocketHandler } from "./websocket"
 import { HttpsHandler } from "./https"
+import { EventEmitter } from "events"
 
 declare global {
     namespace NodeJS {
@@ -16,10 +17,11 @@ interface opts {
     region?: string
 }
 
-export class Client {
+export class Client extends EventEmitter {
     public HttpsHandler
 
     constructor(opts: opts) {
+        super()
         //Object.assign(this, ) 
         /**
          * Add http handlers to ./https
@@ -35,10 +37,13 @@ export class Client {
         global.client = this
         global.emitter.on("client-logged-in", (bearer: string) => {
             global.client.WebsocketHandler = new WebsocketHandler({bearer: bearer, ...opts})
+            global.client.bearer = bearer
+            global.client.emit("ready")
         })
+    
     }
 
-    async login() {
-
+    async connect() {
+        global.client.WebsocketHandler.connect()
     }
 }

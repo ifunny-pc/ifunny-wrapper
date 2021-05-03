@@ -8,6 +8,7 @@ export class WebsocketHandler extends EventEmitter {
     public socketUrl: string = `wss://${this.domain}`
     public apiUrl: string = `https://${this.domain}`
     public requestDeleteTimeout: number = 750
+    public socket?: any
 
     constructor(opts: {bearer: string}) {
         super()
@@ -20,8 +21,18 @@ export class WebsocketHandler extends EventEmitter {
 
     openConnection() {
         let socket = this.getWebsocket()
+
+        this.socket = socket
         socket.onmessage = (message: any) => this.onMessage(JSON.parse(message.data))
-        
+    }
+
+    async connect() {
+        this.openConnection()
+        setInterval(()=>{
+            if (this.socket.readyState != this.socket.OPEN) {
+                this.openConnection()
+            }
+        }, 1000)
     }
 
     async addEventListener(request_id: string, callback: Function | any) {
@@ -37,7 +48,6 @@ export class WebsocketHandler extends EventEmitter {
 
         switch (data.type) {
             case "message":
-                console.log(global.client)
                 messageEvents.message(this, data)
                 break
 
